@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet id="create-email-verification-info-table" author="nporshennikov">
+        <createTable tableName="email_verification_info">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="credentials_id" type="UUID"/>
+            <column name="creation_date" type="timestamptz"/>
+            <column name="last_updated_date" type="timestamptz"/>
+            <column name="valid_to" type="timestamptz"/>
+            <column name="email_otp" type="CHAR(6)"/>
+            <column name="status" type="VARCHAR(32)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="operation" type="VARCHAR(32)"/>
+            <column name="left_attempts" type="int"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="email-verification-info-table-customer-id-foreign-key" author="nporshennikov">
+        <addForeignKeyConstraint
+                baseTableName="email_verification_info"
+                baseColumnNames="credentials_id"
+                constraintName="fk_email_verification_info_customer"
+                referencedTableName="user_credentials"
+                referencedColumnNames="id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+    </changeSet>
+</databaseChangeLog>

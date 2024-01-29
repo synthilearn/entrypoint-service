@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet id="create-email-change-activity-table" author="nporshennikov">
+        <createTable tableName="email_change_activity">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="old_email" type="VARCHAR(255)"/>
+            <column name="new_email" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="email-change-activity-table-id-email-verification-id-foreign-key" author="nporshennikov">
+        <addForeignKeyConstraint
+                baseTableName="email_change_activity"
+                baseColumnNames="id"
+                constraintName="fk_email_change_activity_email_verification"
+                referencedTableName="email_verification_info"
+                referencedColumnNames="id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.0.xsd">
+
+    <changeSet id="create-auth-activity-table" author="nporshennikov">
+        <createTable tableName="auth_activity">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="credentials_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device" type="VARCHAR(64)"/>
+            <column name="ip" type="VARCHAR(64)"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="auth-activity-foreign-key" author="nporshennikov">
+        <addForeignKeyConstraint
+                baseTableName="auth_activity"
+                baseColumnNames="credentials_id"
+                constraintName="fk_id_credentials_id"
+                referencedTableName="user_credentials"
+                referencedColumnNames="id"
+                onDelete="CASCADE"
+                onUpdate="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
