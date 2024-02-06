@@ -1,6 +1,7 @@
 package com.synthilearn.entrypointservice;
 
 import com.synthilearn.entrypointservice.app.config.KafkaCustomProperties;
+import com.synthilearn.entrypointservice.app.config.Oauth2Properties;
 import com.synthilearn.entrypointservice.app.config.TokenProperties;
 import com.synthilearn.entrypointservice.app.config.WebClientProperties;
 import com.synthilearn.loggingstarter.EnableLogging;
@@ -14,7 +15,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 @EnableLogging
 @EnableTokenResolver
-@EnableConfigurationProperties({KafkaCustomProperties.class, WebClientProperties.class, TokenProperties.class})
+@EnableConfigurationProperties({KafkaCustomProperties.class, WebClientProperties.class, TokenProperties.class, Oauth2Properties.class})
 public class EntrypointServiceApplication {
 
     public static void main(String[] args) {

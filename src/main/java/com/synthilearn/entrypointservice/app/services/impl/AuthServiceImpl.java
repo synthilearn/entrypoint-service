@@ -14,6 +14,7 @@ import com.synthilearn.entrypointservice.domain.*;
 import com.synthilearn.entrypointservice.infra.adapter.client.CustomerClient;
 import com.synthilearn.entrypointservice.infra.api.rest.dto.ActivateRequest;
 import com.synthilearn.entrypointservice.infra.api.rest.dto.DataSaveRequest;
+import com.synthilearn.entrypointservice.infra.api.rest.dto.ExternalRegisterRequest;
 import com.synthilearn.entrypointservice.infra.api.rest.exception.CredentialsException;
 import com.synthilearn.securestarter.AccessToken;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         return customerClient.dataSave(request)
                 .flatMap(customer -> {
                     String encryptedPassword = passwordEncoder.encode(EmailPasswordDecoder.decodeSecretPair(secretPair).getPassword());
-                    return userCredentialsRepository.initialSave(customer, encryptedPassword)
+                    return userCredentialsRepository.initialSave(customer, encryptedPassword, true)
                             .map(userCredentials -> {
                                 String otpCode = OtpGenerator.generateOTP();
                                 var emailVerification = fillEmailVerification(userCredentials, VerificationOperation.EMAIL_CONFIRMATION);
@@ -104,6 +105,31 @@ public class AuthServiceImpl implements AuthService {
                     tokenRepository.save(accessToken.getId(), tokenPair.getRefreshToken())
                             .subscribe();
                     return tokenPair;
+                });
+    }
+
+    @Override
+    @Transactional
+    public Mono<TokenPair> externalLogin(ExternalRegisterRequest request, String ip, String device) {
+        return userCredentialsRepository.findByEmail(request.getEmail())
+                .singleOptional()
+                .flatMap(userCredentialsOpt -> {
+                    Mono<UserCredentials> userCredentialsMono;
+                    if (userCredentialsOpt.isEmpty()) {
+                        userCredentialsMono = customerClient.externalRegister(request)
+                                .flatMap(customer -> userCredentialsRepository.initialSave(customer, null, false));
+                    } else {
+                        UserCredentials userCredentials = userCredentialsOpt.get();
+                        checkUserCredentialsOnLocked(userCredentials);
+                        userCredentialsMono = Mono.just(userCredentials);
+                    }
+
+                    return userCredentialsMono.flatMap(userCredentials -> {
+                        TokenPair tokenPair = tokenService.generateTokenPair(userCredentials.getEmail(), userCredentials.getCustomerId().toString());
+                        return tokenRepository.save(userCredentials.getCustomerId(), tokenPair.getRefreshToken())
+                                .then(authActivityRepository.save(userCredentials, ip, device))
+                                .thenReturn(tokenPair);
+                    });
                 });
     }
 

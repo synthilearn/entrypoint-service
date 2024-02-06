@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface UserCredentialsRepository {
 
-    Mono<UserCredentials> initialSave(Customer customer, String password);
+    Mono<UserCredentials> initialSave(Customer customer, String password, boolean isLocked);
     Mono<UserCredentials> findByCustomerId(UUID customerId);
     Mono<UserCredentials> findByEmail(String email);
     Mono<UserCredentials> activateByCustomerUUID(UUID customerId);

@@ -16,7 +16,7 @@
             <column name="creation_date" type="timestamptz">
                 <constraints nullable="false"/>
             </column>
-            <column name="device" type="VARCHAR(64)"/>
+            <column name="device" type="VARCHAR(500)"/>
             <column name="ip" type="VARCHAR(64)"/>
         </createTable>
     </changeSet>

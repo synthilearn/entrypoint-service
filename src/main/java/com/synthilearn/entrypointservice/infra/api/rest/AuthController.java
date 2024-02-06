@@ -35,7 +35,7 @@ public class AuthController {
     @PostMapping("/login")
     public Mono<GenericResponse<TokenPair>> login(@RequestHeader("secretPair") String secretPair,
                                                   @RequestHeader(value = "ip", required = false) String ip,
-                                                  @RequestHeader(value = "device", required = false) String device) {
+                                                  @RequestHeader(value = "platform", required = false) String device) {
         return authService.login(secretPair, ip, device)
                 .map(GenericResponse::ok);
     }

@@ -27,8 +27,8 @@ public class UserCredentialsRepositoryImpl implements UserCredentialsRepository 
 
     @Override
     @Transactional
-    public Mono<UserCredentials> initialSave(Customer customer, String password) {
-        return userCredentialsJpaRepository.save(init(customer, password))
+    public Mono<UserCredentials> initialSave(Customer customer, String password, boolean isLocked) {
+        return userCredentialsJpaRepository.save(init(customer, password, isLocked))
                 .map(entity -> userCredentialsMapper.map(entity, customer.getName()));
     }
 
@@ -59,7 +59,7 @@ public class UserCredentialsRepositoryImpl implements UserCredentialsRepository 
                 });
     }
 
-    private UserCredentialsEntity init(Customer customer, String password) {
+    private UserCredentialsEntity init(Customer customer, String password, boolean isLocked) {
         return userCredentialsEntityMapper.map(customer, password)
                 .toBuilder()
                 .id(UUID.randomUUID())
@@ -67,7 +67,7 @@ public class UserCredentialsRepositoryImpl implements UserCredentialsRepository 
                 .updatedDate(ZonedDateTime.now())
                 .newRecord(true)
                 .remember(true)
-                .isLocked(true)
+                .isLocked(isLocked)
                 .build();
     }
 }
