@@ -10,4 +10,5 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 public class WebClientProperties {
 
     private String customerHost;
+    private String workspaceHost;
 }

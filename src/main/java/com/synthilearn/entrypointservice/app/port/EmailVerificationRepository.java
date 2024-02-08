@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface EmailVerificationRepository {
 
-        Mono<EmailVerification> save(EmailVerification emailVerification, String otpCode);
+        Mono<EmailVerification> save(EmailVerification emailVerification, String otpCode, UUID credentialsId);
         Mono<EmailVerification> findInfoByOperationAndEmail(VerificationOperation operation, String email);
         Mono<Void> updateStatus(UUID uuid, VerificationStatus status);
         Mono<Void> decrementAttempts(UUID uuid, int actualAttempts);

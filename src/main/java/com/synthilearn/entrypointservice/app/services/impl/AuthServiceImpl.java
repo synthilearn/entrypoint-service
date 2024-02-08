@@ -12,7 +12,9 @@ import com.synthilearn.entrypointservice.app.util.decoder.EmailPasswordDecoder;
 import com.synthilearn.entrypointservice.app.util.decoder.EmailPasswordPair;
 import com.synthilearn.entrypointservice.domain.*;
 import com.synthilearn.entrypointservice.infra.adapter.client.CustomerClient;
+import com.synthilearn.entrypointservice.infra.adapter.client.WorkspaceClient;
 import com.synthilearn.entrypointservice.infra.api.rest.dto.ActivateRequest;
+import com.synthilearn.entrypointservice.infra.api.rest.dto.CreateWorkspaceRequest;
 import com.synthilearn.entrypointservice.infra.api.rest.dto.DataSaveRequest;
 import com.synthilearn.entrypointservice.infra.api.rest.dto.ExternalRegisterRequest;
 import com.synthilearn.entrypointservice.infra.api.rest.exception.CredentialsException;
@@ -42,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final TokenProcessor tokenService;
     private final PasswordEncoder passwordEncoder;
     private final TokenRepository tokenRepository;
+    private final WorkspaceClient workspaceClient;
     private final ReactiveKafkaProducerTemplate<String, Notification> producerTemplate;
 
     @Override
@@ -51,14 +54,15 @@ public class AuthServiceImpl implements AuthService {
                 .flatMap(customer -> {
                     String encryptedPassword = passwordEncoder.encode(EmailPasswordDecoder.decodeSecretPair(secretPair).getPassword());
                     return userCredentialsRepository.initialSave(customer, encryptedPassword, true)
-                            .map(userCredentials -> {
+                            .flatMap(userCredentials -> {
                                 String otpCode = OtpGenerator.generateOTP();
                                 var emailVerification = fillEmailVerification(userCredentials, VerificationOperation.EMAIL_CONFIRMATION);
-                                emailVerificationRepository.save(emailVerification, otpCode)
-                                        .subscribe();
-                                producerTemplate.send(emailVerification.getOperation().name(), formEmailConfirnationNotification(userCredentials, otpCode))
-                                        .subscribe();
-                                return customer;
+                                return emailVerificationRepository.save(emailVerification, otpCode, userCredentials.getId())
+                                        .map(savedEmailVerification -> {
+                                            producerTemplate.send(emailVerification.getOperation().name(), formEmailConfirnationNotification(userCredentials, otpCode))
+                                                    .subscribe();
+                                            return customer;
+                                        });
                             });
                 });
     }
@@ -70,6 +74,8 @@ public class AuthServiceImpl implements AuthService {
                         .checkOtp(VerificationOperation.EMAIL_CONFIRMATION, request.getEmail(), request.getOtpCode())
                         .flatMap(verification -> {
                             userCredentialsRepository.activateByCustomerUUID(customer.getId())
+                                    .subscribe();
+                            workspaceClient.createWorkspace(new CreateWorkspaceRequest(customer.getId()))
                                     .subscribe();
                             return customerClient.activate(request);
                         }));
@@ -117,7 +123,11 @@ public class AuthServiceImpl implements AuthService {
                     Mono<UserCredentials> userCredentialsMono;
                     if (userCredentialsOpt.isEmpty()) {
                         userCredentialsMono = customerClient.externalRegister(request)
-                                .flatMap(customer -> userCredentialsRepository.initialSave(customer, null, false));
+                                .flatMap(customer -> {
+                                    workspaceClient.createWorkspace(new CreateWorkspaceRequest(customer.getId()))
+                                            .subscribe();
+                                    return userCredentialsRepository.initialSave(customer, null, false);
+                                });
                     } else {
                         UserCredentials userCredentials = userCredentialsOpt.get();
                         checkUserCredentialsOnLocked(userCredentials);

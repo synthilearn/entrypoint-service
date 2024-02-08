@@ -29,8 +29,8 @@ public class EmailVerificationRepositoryImpl implements EmailVerificationReposit
 
     @Override
     @Transactional
-    public Mono<EmailVerification> save(EmailVerification emailVerification, String otpCode) {
-        return emailVerificationJpaRepository.save(init(emailVerification, otpCode))
+    public Mono<EmailVerification> save(EmailVerification emailVerification, String otpCode, UUID credentialsId) {
+        return emailVerificationJpaRepository.save(init(emailVerification, otpCode, credentialsId))
                 .map(emailVerificationMapper::map);
     }
 
@@ -59,12 +59,13 @@ public class EmailVerificationRepositoryImpl implements EmailVerificationReposit
         return emailVerificationJpaRepository.decrementAttempts(uuid, actualAttempts);
     }
 
-    private EmailVerificationInfoEntity init(EmailVerification emailVerification, String otpCode) {
+    private EmailVerificationInfoEntity init(EmailVerification emailVerification, String otpCode, UUID credentialsId) {
         return emailVerificationEntityMapper.map(emailVerification, otpCode)
                 .toBuilder()
                 .id(UUID.randomUUID())
                 .creationDate(ZonedDateTime.now())
                 .updatedDate(ZonedDateTime.now())
+                .credentialsId(credentialsId)
                 .emailOtp(otpCode)
                 .status(VerificationStatus.NOT_USED)
                 .newRecord(true)

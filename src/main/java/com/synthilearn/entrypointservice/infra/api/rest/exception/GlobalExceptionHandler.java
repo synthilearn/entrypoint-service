@@ -53,4 +53,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Mono.just(GenericResponse.error(1000, ex.getMessage())));
     }
+
+    @ExceptionHandler(WorkspaceException.class)
+    public ResponseEntity<Mono<GenericResponse<?>>> handle(WorkspaceException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Mono.just(GenericResponse.error(1000, ex.getMessage())));
+    }
 }
