@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/entrypoint-service/v1/auth")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class AuthController {
 

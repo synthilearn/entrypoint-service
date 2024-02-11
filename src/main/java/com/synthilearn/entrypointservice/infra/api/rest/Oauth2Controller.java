@@ -19,7 +19,6 @@ import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 @RequestMapping("/entrypoint-service/v1/oauth2")
 public class Oauth2Controller {
 
