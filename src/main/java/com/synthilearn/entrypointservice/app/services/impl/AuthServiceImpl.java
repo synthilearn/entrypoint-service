@@ -106,8 +106,8 @@ public class AuthServiceImpl implements AuthService {
         return tokenRepository.findToken(accessToken)
                 .map(token -> {
                     TokenPair tokenPair = tokenService.generateTokenPair(accessToken.getEmail(), accessToken.getId().toString());
-                    tokenRepository.revokeAllTokens(accessToken.getId())
-                            .subscribe();
+//                    tokenRepository.revokeAllTokens(accessToken.getId())
+//                            .subscribe();
                     tokenRepository.save(accessToken.getId(), tokenPair.getRefreshToken())
                             .subscribe();
                     return tokenPair;
